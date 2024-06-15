@@ -1,0 +1,7 @@
+query channels {
+  channels
+}
+
+mutation water($input: WateringInput!) {
+  water(input: $input)
+}

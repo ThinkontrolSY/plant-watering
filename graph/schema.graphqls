@@ -1,0 +1,16 @@
+# GraphQL schema example
+#
+# https://gqlgen.com/getting-started/
+
+input WateringInput {
+  channel: String!
+  seconds: Int!
+}
+
+type Query {
+  channels: [String!]!
+}
+
+type Mutation {
+  water(input: WateringInput!): Boolean!
+}
