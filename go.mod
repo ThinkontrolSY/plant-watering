@@ -1,8 +1,6 @@
 module plant-watering
 
-go 1.21
-
-toolchain go1.22.4
+go 1.22.4
 
 require (
 	entgo.io/ent v0.13.1
@@ -11,6 +9,8 @@ require (
 	github.com/mattn/go-sqlite3 v1.14.22
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/vektah/gqlparser/v2 v2.5.16
+	periph.io/x/conn/v3 v3.7.0
+	periph.io/x/host/v3 v3.8.2
 )
 
 require (
@@ -60,5 +60,6 @@ require (
 	golang.org/x/text v0.16.0 // indirect
 	golang.org/x/tools v0.22.0 // indirect
 	google.golang.org/protobuf v1.34.1 // indirect
+	gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

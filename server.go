@@ -14,6 +14,7 @@ import (
 	"github.com/gin-gonic/gin"
 
 	_ "github.com/mattn/go-sqlite3"
+	"periph.io/x/host/v3"
 )
 
 // Defining the Graphql handler
@@ -38,6 +39,12 @@ func graphqlHandler(entClient *ent.Client) gin.HandlerFunc {
 
 func main() {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
+	// Initialize periph.io host
+	if _, err := host.Init(); err != nil {
+		log.Fatalf("Failed to initialize periph.io: %v", err)
+		return
+	}
+
 	databaseFile := "file:./plant_warting.db?_fk=1"
 	drv, err := sql.Open(dialect.SQLite, databaseFile)
 	if err != nil {

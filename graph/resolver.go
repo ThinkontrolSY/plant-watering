@@ -5,46 +5,22 @@ package graph
 import (
 	"log"
 	"plant-watering/ent"
-	"time"
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/robfig/cron/v3"
+
+	"periph.io/x/conn/v3/gpio"
+	"periph.io/x/host/v3/rpi"
 )
 
 // This file will not be regenerated automatically.
 //
 // It serves as dependency injection for your app, add any dependencies you require here.
-
-type WeatherResponse struct {
-	Status   string `json:"status"`
-	Count    string `json:"count"`
-	Info     string `json:"info"`
-	Infocode string `json:"infocode"`
-	Lives    []struct {
-		Province      string `json:"province"`
-		City          string `json:"city"`
-		Adcode        string `json:"adcode"`
-		Weather       string `json:"weather"`
-		Temperature   string `json:"temperature_float"`
-		WindDirection string `json:"winddirection"`
-		WindPower     string `json:"windpower"`
-		Humidity      string `json:"humidity_float"`
-		ReportTime    string `json:"reporttime"`
-	} `json:"lives"`
-}
-
-type Weather struct {
-	ReportTime    time.Time
-	Temperature   float64
-	Humidity      float64
-	WindDirection string
-	WindPower     string
-	Weather       string
-}
 type Resolver struct {
 	entClient *ent.Client
 	croner    *cron.Cron
 	weather   *Weather
+	waterIOs  map[string]*WaterIO
 }
 
 func (r *Resolver) Start() {
@@ -66,8 +42,24 @@ func (r *Resolver) Start() {
 func NewSchema(
 	entClient *ent.Client,
 ) graphql.ExecutableSchema {
+	pinN1 := rpi.P1_11
+	pinN2 := rpi.P1_12
+	if err := pinN1.Out(gpio.Low); err != nil {
+		log.Println("Failed to set pin N1 to low:", err)
+	}
+	if err := pinN2.Out(gpio.Low); err != nil {
+		log.Println("Failed to set pin N2 to low:", err)
+	}
 	resolver := &Resolver{
 		entClient: entClient,
+		waterIOs: map[string]*WaterIO{
+			"N1": {
+				Pin: pinN1,
+			},
+			"N2": {
+				Pin: pinN2,
+			},
+		},
 	}
 	config := Config{
 		Resolvers: resolver,

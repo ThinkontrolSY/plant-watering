@@ -12,3 +12,8 @@ type WateringInput struct {
 	Channel string `json:"channel"`
 	Seconds int    `json:"seconds"`
 }
+
+type WaterStatistic struct {
+	AutoWatering   int `json:"autoWatering"`
+	ManualWatering int `json:"manualWatering"`
+}
