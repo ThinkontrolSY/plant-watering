@@ -2,6 +2,24 @@ query channels {
   channels
 }
 
+query weather {
+  weather {
+    dayTemperature
+    nightTemperature
+    windDirection
+    windPower
+    weather
+    waterPlanSec
+  }
+}
+
+query waterStatistic($channel: String!) {
+  waterStatistic(channel: $channel) {
+    autoWatering
+    manualWatering
+  }
+}
+
 mutation water($input: WateringInput!) {
   water(input: $input)
 }

@@ -7,6 +7,11 @@ import { ApolloClient, InMemoryCache, ApolloProvider } from "@apollo/client";
 const client = new ApolloClient({
   uri: "/graph",
   cache: new InMemoryCache(),
+  defaultOptions: {
+    query: {
+      fetchPolicy: "network-only",
+    },
+  },
 });
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
