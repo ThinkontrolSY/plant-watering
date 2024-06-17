@@ -10,7 +10,7 @@ import (
 	"github.com/robfig/cron/v3"
 
 	"periph.io/x/conn/v3/gpio"
-	"periph.io/x/host/v3/rpi"
+	"periph.io/x/host/v3/sysfs"
 )
 
 // This file will not be regenerated automatically.
@@ -37,13 +37,14 @@ func (r *Resolver) Start() {
 		log.Println("Error scheduling evening job:", err)
 	}
 	r.croner.Start()
+	log.Println("Cron started")
 }
 
 func NewSchema(
 	entClient *ent.Client,
 ) graphql.ExecutableSchema {
-	pinN1 := rpi.P1_11
-	pinN2 := rpi.P1_12
+	pinN1 := sysfs.Pins[198]
+	pinN2 := sysfs.Pins[199]
 	if err := pinN1.Out(gpio.Low); err != nil {
 		log.Println("Failed to set pin N1 to low:", err)
 	}

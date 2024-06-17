@@ -11,6 +11,7 @@ import (
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/google/uuid"
 )
 
 // WaterLogCreate is the builder for creating a WaterLog entity.
@@ -21,7 +22,7 @@ type WaterLogCreate struct {
 }
 
 // SetSeconds sets the "seconds" field.
-func (wlc *WaterLogCreate) SetSeconds(i int) *WaterLogCreate {
+func (wlc *WaterLogCreate) SetSeconds(i int32) *WaterLogCreate {
 	wlc.mutation.SetSeconds(i)
 	return wlc
 }
@@ -48,6 +49,20 @@ func (wlc *WaterLogCreate) SetTime(t time.Time) *WaterLogCreate {
 func (wlc *WaterLogCreate) SetNillableTime(t *time.Time) *WaterLogCreate {
 	if t != nil {
 		wlc.SetTime(*t)
+	}
+	return wlc
+}
+
+// SetID sets the "id" field.
+func (wlc *WaterLogCreate) SetID(u uuid.UUID) *WaterLogCreate {
+	wlc.mutation.SetID(u)
+	return wlc
+}
+
+// SetNillableID sets the "id" field if the given value is not nil.
+func (wlc *WaterLogCreate) SetNillableID(u *uuid.UUID) *WaterLogCreate {
+	if u != nil {
+		wlc.SetID(*u)
 	}
 	return wlc
 }
@@ -91,6 +106,10 @@ func (wlc *WaterLogCreate) defaults() {
 		v := waterlog.DefaultTime()
 		wlc.mutation.SetTime(v)
 	}
+	if _, ok := wlc.mutation.ID(); !ok {
+		v := waterlog.DefaultID()
+		wlc.mutation.SetID(v)
+	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -121,8 +140,13 @@ func (wlc *WaterLogCreate) sqlSave(ctx context.Context) (*WaterLog, error) {
 		}
 		return nil, err
 	}
-	id := _spec.ID.Value.(int64)
-	_node.ID = int(id)
+	if _spec.ID.Value != nil {
+		if id, ok := _spec.ID.Value.(*uuid.UUID); ok {
+			_node.ID = *id
+		} else if err := _node.ID.Scan(_spec.ID.Value); err != nil {
+			return nil, err
+		}
+	}
 	wlc.mutation.id = &_node.ID
 	wlc.mutation.done = true
 	return _node, nil
@@ -131,10 +155,14 @@ func (wlc *WaterLogCreate) sqlSave(ctx context.Context) (*WaterLog, error) {
 func (wlc *WaterLogCreate) createSpec() (*WaterLog, *sqlgraph.CreateSpec) {
 	var (
 		_node = &WaterLog{config: wlc.config}
-		_spec = sqlgraph.NewCreateSpec(waterlog.Table, sqlgraph.NewFieldSpec(waterlog.FieldID, field.TypeInt))
+		_spec = sqlgraph.NewCreateSpec(waterlog.Table, sqlgraph.NewFieldSpec(waterlog.FieldID, field.TypeUUID))
 	)
+	if id, ok := wlc.mutation.ID(); ok {
+		_node.ID = id
+		_spec.ID.Value = &id
+	}
 	if value, ok := wlc.mutation.Seconds(); ok {
-		_spec.SetField(waterlog.FieldSeconds, field.TypeInt, value)
+		_spec.SetField(waterlog.FieldSeconds, field.TypeInt32, value)
 		_node.Seconds = value
 	}
 	if value, ok := wlc.mutation.Channel(); ok {
@@ -197,10 +225,6 @@ func (wlcb *WaterLogCreateBulk) Save(ctx context.Context) ([]*WaterLog, error) {
 					return nil, err
 				}
 				mutation.id = &nodes[i].ID
-				if specs[i].ID.Value != nil {
-					id := specs[i].ID.Value.(int64)
-					nodes[i].ID = int(id)
-				}
 				mutation.done = true
 				return nodes[i], nil
 			})

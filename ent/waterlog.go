@@ -10,15 +10,16 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
+	"github.com/google/uuid"
 )
 
 // WaterLog is the model entity for the WaterLog schema.
 type WaterLog struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID int `json:"id,omitempty"`
+	ID uuid.UUID `json:"id,omitempty"`
 	// Seconds holds the value of the "seconds" field.
-	Seconds int `json:"seconds,omitempty"`
+	Seconds int32 `json:"seconds,omitempty"`
 	// Channel holds the value of the "channel" field.
 	Channel string `json:"channel,omitempty"`
 	// Manual holds the value of the "manual" field.
@@ -35,12 +36,14 @@ func (*WaterLog) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case waterlog.FieldManual:
 			values[i] = new(sql.NullBool)
-		case waterlog.FieldID, waterlog.FieldSeconds:
+		case waterlog.FieldSeconds:
 			values[i] = new(sql.NullInt64)
 		case waterlog.FieldChannel:
 			values[i] = new(sql.NullString)
 		case waterlog.FieldTime:
 			values[i] = new(sql.NullTime)
+		case waterlog.FieldID:
+			values[i] = new(uuid.UUID)
 		default:
 			values[i] = new(sql.UnknownType)
 		}
@@ -57,16 +60,16 @@ func (wl *WaterLog) assignValues(columns []string, values []any) error {
 	for i := range columns {
 		switch columns[i] {
 		case waterlog.FieldID:
-			value, ok := values[i].(*sql.NullInt64)
-			if !ok {
-				return fmt.Errorf("unexpected type %T for field id", value)
+			if value, ok := values[i].(*uuid.UUID); !ok {
+				return fmt.Errorf("unexpected type %T for field id", values[i])
+			} else if value != nil {
+				wl.ID = *value
 			}
-			wl.ID = int(value.Int64)
 		case waterlog.FieldSeconds:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field seconds", values[i])
 			} else if value.Valid {
-				wl.Seconds = int(value.Int64)
+				wl.Seconds = int32(value.Int64)
 			}
 		case waterlog.FieldChannel:
 			if value, ok := values[i].(*sql.NullString); !ok {

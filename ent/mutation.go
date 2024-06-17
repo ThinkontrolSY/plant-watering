@@ -13,6 +13,7 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
+	"github.com/google/uuid"
 )
 
 const (
@@ -32,9 +33,9 @@ type WaterLogMutation struct {
 	config
 	op            Op
 	typ           string
-	id            *int
-	seconds       *int
-	addseconds    *int
+	id            *uuid.UUID
+	seconds       *int32
+	addseconds    *int32
 	channel       *string
 	manual        *bool
 	time          *time.Time
@@ -64,7 +65,7 @@ func newWaterLogMutation(c config, op Op, opts ...waterlogOption) *WaterLogMutat
 }
 
 // withWaterLogID sets the ID field of the mutation.
-func withWaterLogID(id int) waterlogOption {
+func withWaterLogID(id uuid.UUID) waterlogOption {
 	return func(m *WaterLogMutation) {
 		var (
 			err   error
@@ -114,9 +115,15 @@ func (m WaterLogMutation) Tx() (*Tx, error) {
 	return tx, nil
 }
 
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of WaterLog entities.
+func (m *WaterLogMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
 // ID returns the ID value in the mutation. Note that the ID is only available
 // if it was provided to the builder or after it was returned from the database.
-func (m *WaterLogMutation) ID() (id int, exists bool) {
+func (m *WaterLogMutation) ID() (id uuid.UUID, exists bool) {
 	if m.id == nil {
 		return
 	}
@@ -127,12 +134,12 @@ func (m *WaterLogMutation) ID() (id int, exists bool) {
 // That means, if the mutation is applied within a transaction with an isolation level such
 // as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
 // or updated by the mutation.
-func (m *WaterLogMutation) IDs(ctx context.Context) ([]int, error) {
+func (m *WaterLogMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
 	switch {
 	case m.op.Is(OpUpdateOne | OpDeleteOne):
 		id, exists := m.ID()
 		if exists {
-			return []int{id}, nil
+			return []uuid.UUID{id}, nil
 		}
 		fallthrough
 	case m.op.Is(OpUpdate | OpDelete):
@@ -143,13 +150,13 @@ func (m *WaterLogMutation) IDs(ctx context.Context) ([]int, error) {
 }
 
 // SetSeconds sets the "seconds" field.
-func (m *WaterLogMutation) SetSeconds(i int) {
+func (m *WaterLogMutation) SetSeconds(i int32) {
 	m.seconds = &i
 	m.addseconds = nil
 }
 
 // Seconds returns the value of the "seconds" field in the mutation.
-func (m *WaterLogMutation) Seconds() (r int, exists bool) {
+func (m *WaterLogMutation) Seconds() (r int32, exists bool) {
 	v := m.seconds
 	if v == nil {
 		return
@@ -160,7 +167,7 @@ func (m *WaterLogMutation) Seconds() (r int, exists bool) {
 // OldSeconds returns the old "seconds" field's value of the WaterLog entity.
 // If the WaterLog object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *WaterLogMutation) OldSeconds(ctx context.Context) (v int, err error) {
+func (m *WaterLogMutation) OldSeconds(ctx context.Context) (v int32, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldSeconds is only allowed on UpdateOne operations")
 	}
@@ -175,7 +182,7 @@ func (m *WaterLogMutation) OldSeconds(ctx context.Context) (v int, err error) {
 }
 
 // AddSeconds adds i to the "seconds" field.
-func (m *WaterLogMutation) AddSeconds(i int) {
+func (m *WaterLogMutation) AddSeconds(i int32) {
 	if m.addseconds != nil {
 		*m.addseconds += i
 	} else {
@@ -184,7 +191,7 @@ func (m *WaterLogMutation) AddSeconds(i int) {
 }
 
 // AddedSeconds returns the value that was added to the "seconds" field in this mutation.
-func (m *WaterLogMutation) AddedSeconds() (r int, exists bool) {
+func (m *WaterLogMutation) AddedSeconds() (r int32, exists bool) {
 	v := m.addseconds
 	if v == nil {
 		return
@@ -396,7 +403,7 @@ func (m *WaterLogMutation) OldField(ctx context.Context, name string) (ent.Value
 func (m *WaterLogMutation) SetField(name string, value ent.Value) error {
 	switch name {
 	case waterlog.FieldSeconds:
-		v, ok := value.(int)
+		v, ok := value.(int32)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
@@ -454,7 +461,7 @@ func (m *WaterLogMutation) AddedField(name string) (ent.Value, bool) {
 func (m *WaterLogMutation) AddField(name string, value ent.Value) error {
 	switch name {
 	case waterlog.FieldSeconds:
-		v, ok := value.(int)
+		v, ok := value.(int32)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}

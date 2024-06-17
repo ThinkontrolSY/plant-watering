@@ -5,6 +5,7 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/schema/field"
+	"github.com/google/uuid"
 )
 
 // WaterLog holds the schema definition for the WaterLog entity.
@@ -15,7 +16,9 @@ type WaterLog struct {
 // Fields of the WaterLog.
 func (WaterLog) Fields() []ent.Field {
 	return []ent.Field{
-		field.Int("seconds"),
+		field.UUID("id", uuid.UUID{}).
+			Default(uuid.New),
+		field.Int32("seconds"),
 		field.String("channel"),
 		field.Bool("manual"),
 		field.Time("time").

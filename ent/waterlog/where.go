@@ -7,55 +7,56 @@ import (
 	"time"
 
 	"entgo.io/ent/dialect/sql"
+	"github.com/google/uuid"
 )
 
 // ID filters vertices based on their ID field.
-func ID(id int) predicate.WaterLog {
+func ID(id uuid.UUID) predicate.WaterLog {
 	return predicate.WaterLog(sql.FieldEQ(FieldID, id))
 }
 
 // IDEQ applies the EQ predicate on the ID field.
-func IDEQ(id int) predicate.WaterLog {
+func IDEQ(id uuid.UUID) predicate.WaterLog {
 	return predicate.WaterLog(sql.FieldEQ(FieldID, id))
 }
 
 // IDNEQ applies the NEQ predicate on the ID field.
-func IDNEQ(id int) predicate.WaterLog {
+func IDNEQ(id uuid.UUID) predicate.WaterLog {
 	return predicate.WaterLog(sql.FieldNEQ(FieldID, id))
 }
 
 // IDIn applies the In predicate on the ID field.
-func IDIn(ids ...int) predicate.WaterLog {
+func IDIn(ids ...uuid.UUID) predicate.WaterLog {
 	return predicate.WaterLog(sql.FieldIn(FieldID, ids...))
 }
 
 // IDNotIn applies the NotIn predicate on the ID field.
-func IDNotIn(ids ...int) predicate.WaterLog {
+func IDNotIn(ids ...uuid.UUID) predicate.WaterLog {
 	return predicate.WaterLog(sql.FieldNotIn(FieldID, ids...))
 }
 
 // IDGT applies the GT predicate on the ID field.
-func IDGT(id int) predicate.WaterLog {
+func IDGT(id uuid.UUID) predicate.WaterLog {
 	return predicate.WaterLog(sql.FieldGT(FieldID, id))
 }
 
 // IDGTE applies the GTE predicate on the ID field.
-func IDGTE(id int) predicate.WaterLog {
+func IDGTE(id uuid.UUID) predicate.WaterLog {
 	return predicate.WaterLog(sql.FieldGTE(FieldID, id))
 }
 
 // IDLT applies the LT predicate on the ID field.
-func IDLT(id int) predicate.WaterLog {
+func IDLT(id uuid.UUID) predicate.WaterLog {
 	return predicate.WaterLog(sql.FieldLT(FieldID, id))
 }
 
 // IDLTE applies the LTE predicate on the ID field.
-func IDLTE(id int) predicate.WaterLog {
+func IDLTE(id uuid.UUID) predicate.WaterLog {
 	return predicate.WaterLog(sql.FieldLTE(FieldID, id))
 }
 
 // Seconds applies equality check predicate on the "seconds" field. It's identical to SecondsEQ.
-func Seconds(v int) predicate.WaterLog {
+func Seconds(v int32) predicate.WaterLog {
 	return predicate.WaterLog(sql.FieldEQ(FieldSeconds, v))
 }
 
@@ -75,42 +76,42 @@ func Time(v time.Time) predicate.WaterLog {
 }
 
 // SecondsEQ applies the EQ predicate on the "seconds" field.
-func SecondsEQ(v int) predicate.WaterLog {
+func SecondsEQ(v int32) predicate.WaterLog {
 	return predicate.WaterLog(sql.FieldEQ(FieldSeconds, v))
 }
 
 // SecondsNEQ applies the NEQ predicate on the "seconds" field.
-func SecondsNEQ(v int) predicate.WaterLog {
+func SecondsNEQ(v int32) predicate.WaterLog {
 	return predicate.WaterLog(sql.FieldNEQ(FieldSeconds, v))
 }
 
 // SecondsIn applies the In predicate on the "seconds" field.
-func SecondsIn(vs ...int) predicate.WaterLog {
+func SecondsIn(vs ...int32) predicate.WaterLog {
 	return predicate.WaterLog(sql.FieldIn(FieldSeconds, vs...))
 }
 
 // SecondsNotIn applies the NotIn predicate on the "seconds" field.
-func SecondsNotIn(vs ...int) predicate.WaterLog {
+func SecondsNotIn(vs ...int32) predicate.WaterLog {
 	return predicate.WaterLog(sql.FieldNotIn(FieldSeconds, vs...))
 }
 
 // SecondsGT applies the GT predicate on the "seconds" field.
-func SecondsGT(v int) predicate.WaterLog {
+func SecondsGT(v int32) predicate.WaterLog {
 	return predicate.WaterLog(sql.FieldGT(FieldSeconds, v))
 }
 
 // SecondsGTE applies the GTE predicate on the "seconds" field.
-func SecondsGTE(v int) predicate.WaterLog {
+func SecondsGTE(v int32) predicate.WaterLog {
 	return predicate.WaterLog(sql.FieldGTE(FieldSeconds, v))
 }
 
 // SecondsLT applies the LT predicate on the "seconds" field.
-func SecondsLT(v int) predicate.WaterLog {
+func SecondsLT(v int32) predicate.WaterLog {
 	return predicate.WaterLog(sql.FieldLT(FieldSeconds, v))
 }
 
 // SecondsLTE applies the LTE predicate on the "seconds" field.
-func SecondsLTE(v int) predicate.WaterLog {
+func SecondsLTE(v int32) predicate.WaterLog {
 	return predicate.WaterLog(sql.FieldLTE(FieldSeconds, v))
 }
 

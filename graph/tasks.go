@@ -43,12 +43,12 @@ type WeatherResponse struct {
 
 type Weather struct {
 	ReportTime       time.Time
-	DayTemperature   float64
-	NightTemperature float64
+	DayTemperature   float32
+	NightTemperature float32
 	WindDirection    string
 	WindPower        string
 	Weather          string
-	WaterPlanSec     int
+	WaterPlanSec     int32
 }
 
 // 根据气温和湿度计算浇水时长的函数
@@ -79,7 +79,7 @@ func (w *Weather) calculateWateringSeconds() {
 	}
 
 	// 计算最终的浇水时长
-	wateringTime := baseTime + tempAdjustment + weatherAdjustment
+	wateringTime := baseTime + float64(tempAdjustment) + weatherAdjustment
 
 	// 确保浇水时间不小于基础时间，也不过长
 	if wateringTime < baseTime/2.0 {
@@ -88,7 +88,7 @@ func (w *Weather) calculateWateringSeconds() {
 		wateringTime = 60 // 设定一个上限，避免过度浇水
 	}
 
-	w.WaterPlanSec = int(wateringTime * 60)
+	w.WaterPlanSec = int32(wateringTime * 60)
 }
 
 func (r *Resolver) GetWeatherInfo() error {
@@ -148,13 +148,13 @@ func (r *Resolver) GetWeatherInfo() error {
 
 	live := forecast.Casts[0]
 
-	t1, err := strconv.ParseFloat(live.Daytemp, 64)
+	t1, err := strconv.ParseFloat(live.Daytemp, 32)
 	if err != nil {
 		log.Printf("Failed to parse day temperature: %v", err)
 		return err
 	}
 
-	t2, err := strconv.ParseFloat(live.Nighttemp, 64)
+	t2, err := strconv.ParseFloat(live.Nighttemp, 32)
 	if err != nil {
 		log.Printf("Failed to parse night temperature: %v", err)
 		return err
@@ -168,8 +168,8 @@ func (r *Resolver) GetWeatherInfo() error {
 
 	r.weather = &Weather{
 		ReportTime:       t,
-		DayTemperature:   t1,
-		NightTemperature: t2,
+		DayTemperature:   float32(t1),
+		NightTemperature: float32(t2),
 		WindDirection:    live.Daywind,
 		WindPower:        live.Daypower,
 		Weather:          live.Dayweather,
@@ -205,7 +205,7 @@ type WaterIO struct {
 	mutex sync.Mutex
 }
 
-func (w *WaterIO) Watering(seconds int) error {
+func (w *WaterIO) Watering(seconds int32) error {
 	w.mutex.Lock()
 	defer w.mutex.Unlock()
 
@@ -227,7 +227,7 @@ func (w *WaterIO) Watering(seconds int) error {
 		w.mutex.Lock()
 		defer w.mutex.Unlock()
 		w.Pin.Out(gpio.Low)
-		fmt.Println("Pin set to low after watering duration")
+		log.Println("Pin set to low after watering duration")
 	}()
 
 	return nil

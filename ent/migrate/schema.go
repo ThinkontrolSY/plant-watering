@@ -10,8 +10,8 @@ import (
 var (
 	// WaterLogsColumns holds the columns for the "water_logs" table.
 	WaterLogsColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeInt, Increment: true},
-		{Name: "seconds", Type: field.TypeInt},
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "seconds", Type: field.TypeInt32},
 		{Name: "channel", Type: field.TypeString},
 		{Name: "manual", Type: field.TypeBool},
 		{Name: "time", Type: field.TypeTime},

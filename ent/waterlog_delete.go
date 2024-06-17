@@ -40,7 +40,7 @@ func (wld *WaterLogDelete) ExecX(ctx context.Context) int {
 }
 
 func (wld *WaterLogDelete) sqlExec(ctx context.Context) (int, error) {
-	_spec := sqlgraph.NewDeleteSpec(waterlog.Table, sqlgraph.NewFieldSpec(waterlog.FieldID, field.TypeInt))
+	_spec := sqlgraph.NewDeleteSpec(waterlog.Table, sqlgraph.NewFieldSpec(waterlog.FieldID, field.TypeUUID))
 	if ps := wld.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {

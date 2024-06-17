@@ -29,14 +29,14 @@ func (wlu *WaterLogUpdate) Where(ps ...predicate.WaterLog) *WaterLogUpdate {
 }
 
 // SetSeconds sets the "seconds" field.
-func (wlu *WaterLogUpdate) SetSeconds(i int) *WaterLogUpdate {
+func (wlu *WaterLogUpdate) SetSeconds(i int32) *WaterLogUpdate {
 	wlu.mutation.ResetSeconds()
 	wlu.mutation.SetSeconds(i)
 	return wlu
 }
 
 // SetNillableSeconds sets the "seconds" field if the given value is not nil.
-func (wlu *WaterLogUpdate) SetNillableSeconds(i *int) *WaterLogUpdate {
+func (wlu *WaterLogUpdate) SetNillableSeconds(i *int32) *WaterLogUpdate {
 	if i != nil {
 		wlu.SetSeconds(*i)
 	}
@@ -44,7 +44,7 @@ func (wlu *WaterLogUpdate) SetNillableSeconds(i *int) *WaterLogUpdate {
 }
 
 // AddSeconds adds i to the "seconds" field.
-func (wlu *WaterLogUpdate) AddSeconds(i int) *WaterLogUpdate {
+func (wlu *WaterLogUpdate) AddSeconds(i int32) *WaterLogUpdate {
 	wlu.mutation.AddSeconds(i)
 	return wlu
 }
@@ -124,7 +124,7 @@ func (wlu *WaterLogUpdate) ExecX(ctx context.Context) {
 }
 
 func (wlu *WaterLogUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	_spec := sqlgraph.NewUpdateSpec(waterlog.Table, waterlog.Columns, sqlgraph.NewFieldSpec(waterlog.FieldID, field.TypeInt))
+	_spec := sqlgraph.NewUpdateSpec(waterlog.Table, waterlog.Columns, sqlgraph.NewFieldSpec(waterlog.FieldID, field.TypeUUID))
 	if ps := wlu.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -133,10 +133,10 @@ func (wlu *WaterLogUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 	}
 	if value, ok := wlu.mutation.Seconds(); ok {
-		_spec.SetField(waterlog.FieldSeconds, field.TypeInt, value)
+		_spec.SetField(waterlog.FieldSeconds, field.TypeInt32, value)
 	}
 	if value, ok := wlu.mutation.AddedSeconds(); ok {
-		_spec.AddField(waterlog.FieldSeconds, field.TypeInt, value)
+		_spec.AddField(waterlog.FieldSeconds, field.TypeInt32, value)
 	}
 	if value, ok := wlu.mutation.Channel(); ok {
 		_spec.SetField(waterlog.FieldChannel, field.TypeString, value)
@@ -168,14 +168,14 @@ type WaterLogUpdateOne struct {
 }
 
 // SetSeconds sets the "seconds" field.
-func (wluo *WaterLogUpdateOne) SetSeconds(i int) *WaterLogUpdateOne {
+func (wluo *WaterLogUpdateOne) SetSeconds(i int32) *WaterLogUpdateOne {
 	wluo.mutation.ResetSeconds()
 	wluo.mutation.SetSeconds(i)
 	return wluo
 }
 
 // SetNillableSeconds sets the "seconds" field if the given value is not nil.
-func (wluo *WaterLogUpdateOne) SetNillableSeconds(i *int) *WaterLogUpdateOne {
+func (wluo *WaterLogUpdateOne) SetNillableSeconds(i *int32) *WaterLogUpdateOne {
 	if i != nil {
 		wluo.SetSeconds(*i)
 	}
@@ -183,7 +183,7 @@ func (wluo *WaterLogUpdateOne) SetNillableSeconds(i *int) *WaterLogUpdateOne {
 }
 
 // AddSeconds adds i to the "seconds" field.
-func (wluo *WaterLogUpdateOne) AddSeconds(i int) *WaterLogUpdateOne {
+func (wluo *WaterLogUpdateOne) AddSeconds(i int32) *WaterLogUpdateOne {
 	wluo.mutation.AddSeconds(i)
 	return wluo
 }
@@ -276,7 +276,7 @@ func (wluo *WaterLogUpdateOne) ExecX(ctx context.Context) {
 }
 
 func (wluo *WaterLogUpdateOne) sqlSave(ctx context.Context) (_node *WaterLog, err error) {
-	_spec := sqlgraph.NewUpdateSpec(waterlog.Table, waterlog.Columns, sqlgraph.NewFieldSpec(waterlog.FieldID, field.TypeInt))
+	_spec := sqlgraph.NewUpdateSpec(waterlog.Table, waterlog.Columns, sqlgraph.NewFieldSpec(waterlog.FieldID, field.TypeUUID))
 	id, ok := wluo.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "WaterLog.id" for update`)}
@@ -302,10 +302,10 @@ func (wluo *WaterLogUpdateOne) sqlSave(ctx context.Context) (_node *WaterLog, er
 		}
 	}
 	if value, ok := wluo.mutation.Seconds(); ok {
-		_spec.SetField(waterlog.FieldSeconds, field.TypeInt, value)
+		_spec.SetField(waterlog.FieldSeconds, field.TypeInt32, value)
 	}
 	if value, ok := wluo.mutation.AddedSeconds(); ok {
-		_spec.AddField(waterlog.FieldSeconds, field.TypeInt, value)
+		_spec.AddField(waterlog.FieldSeconds, field.TypeInt32, value)
 	}
 	if value, ok := wluo.mutation.Channel(); ok {
 		_spec.SetField(waterlog.FieldChannel, field.TypeString, value)

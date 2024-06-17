@@ -6,6 +6,8 @@ import (
 	"plant-watering/ent/schema"
 	"plant-watering/ent/waterlog"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 // The init function reads all schema descriptors with runtime code
@@ -15,7 +17,11 @@ func init() {
 	waterlogFields := schema.WaterLog{}.Fields()
 	_ = waterlogFields
 	// waterlogDescTime is the schema descriptor for time field.
-	waterlogDescTime := waterlogFields[3].Descriptor()
+	waterlogDescTime := waterlogFields[4].Descriptor()
 	// waterlog.DefaultTime holds the default value on creation for the time field.
 	waterlog.DefaultTime = waterlogDescTime.Default.(func() time.Time)
+	// waterlogDescID is the schema descriptor for id field.
+	waterlogDescID := waterlogFields[0].Descriptor()
+	// waterlog.DefaultID holds the default value on creation for the id field.
+	waterlog.DefaultID = waterlogDescID.Default.(func() uuid.UUID)
 }

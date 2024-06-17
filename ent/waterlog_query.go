@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/google/uuid"
 )
 
 // WaterLogQuery is the builder for querying WaterLog entities.
@@ -21,6 +22,8 @@ type WaterLogQuery struct {
 	order      []waterlog.OrderOption
 	inters     []Interceptor
 	predicates []predicate.WaterLog
+	modifiers  []func(*sql.Selector)
+	loadTotal  []func(context.Context, []*WaterLog) error
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -81,8 +84,8 @@ func (wlq *WaterLogQuery) FirstX(ctx context.Context) *WaterLog {
 
 // FirstID returns the first WaterLog ID from the query.
 // Returns a *NotFoundError when no WaterLog ID was found.
-func (wlq *WaterLogQuery) FirstID(ctx context.Context) (id int, err error) {
-	var ids []int
+func (wlq *WaterLogQuery) FirstID(ctx context.Context) (id uuid.UUID, err error) {
+	var ids []uuid.UUID
 	if ids, err = wlq.Limit(1).IDs(setContextOp(ctx, wlq.ctx, "FirstID")); err != nil {
 		return
 	}
@@ -94,7 +97,7 @@ func (wlq *WaterLogQuery) FirstID(ctx context.Context) (id int, err error) {
 }
 
 // FirstIDX is like FirstID, but panics if an error occurs.
-func (wlq *WaterLogQuery) FirstIDX(ctx context.Context) int {
+func (wlq *WaterLogQuery) FirstIDX(ctx context.Context) uuid.UUID {
 	id, err := wlq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -132,8 +135,8 @@ func (wlq *WaterLogQuery) OnlyX(ctx context.Context) *WaterLog {
 // OnlyID is like Only, but returns the only WaterLog ID in the query.
 // Returns a *NotSingularError when more than one WaterLog ID is found.
 // Returns a *NotFoundError when no entities are found.
-func (wlq *WaterLogQuery) OnlyID(ctx context.Context) (id int, err error) {
-	var ids []int
+func (wlq *WaterLogQuery) OnlyID(ctx context.Context) (id uuid.UUID, err error) {
+	var ids []uuid.UUID
 	if ids, err = wlq.Limit(2).IDs(setContextOp(ctx, wlq.ctx, "OnlyID")); err != nil {
 		return
 	}
@@ -149,7 +152,7 @@ func (wlq *WaterLogQuery) OnlyID(ctx context.Context) (id int, err error) {
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (wlq *WaterLogQuery) OnlyIDX(ctx context.Context) int {
+func (wlq *WaterLogQuery) OnlyIDX(ctx context.Context) uuid.UUID {
 	id, err := wlq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -177,7 +180,7 @@ func (wlq *WaterLogQuery) AllX(ctx context.Context) []*WaterLog {
 }
 
 // IDs executes the query and returns a list of WaterLog IDs.
-func (wlq *WaterLogQuery) IDs(ctx context.Context) (ids []int, err error) {
+func (wlq *WaterLogQuery) IDs(ctx context.Context) (ids []uuid.UUID, err error) {
 	if wlq.ctx.Unique == nil && wlq.path != nil {
 		wlq.Unique(true)
 	}
@@ -189,7 +192,7 @@ func (wlq *WaterLogQuery) IDs(ctx context.Context) (ids []int, err error) {
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (wlq *WaterLogQuery) IDsX(ctx context.Context) []int {
+func (wlq *WaterLogQuery) IDsX(ctx context.Context) []uuid.UUID {
 	ids, err := wlq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -261,7 +264,7 @@ func (wlq *WaterLogQuery) Clone() *WaterLogQuery {
 // Example:
 //
 //	var v []struct {
-//		Seconds int `json:"seconds,omitempty"`
+//		Seconds int32 `json:"seconds,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
@@ -284,7 +287,7 @@ func (wlq *WaterLogQuery) GroupBy(field string, fields ...string) *WaterLogGroup
 // Example:
 //
 //	var v []struct {
-//		Seconds int `json:"seconds,omitempty"`
+//		Seconds int32 `json:"seconds,omitempty"`
 //	}
 //
 //	client.WaterLog.Query().
@@ -342,6 +345,9 @@ func (wlq *WaterLogQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Wa
 		nodes = append(nodes, node)
 		return node.assignValues(columns, values)
 	}
+	if len(wlq.modifiers) > 0 {
+		_spec.Modifiers = wlq.modifiers
+	}
 	for i := range hooks {
 		hooks[i](ctx, _spec)
 	}
@@ -351,11 +357,19 @@ func (wlq *WaterLogQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Wa
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
+	for i := range wlq.loadTotal {
+		if err := wlq.loadTotal[i](ctx, nodes); err != nil {
+			return nil, err
+		}
+	}
 	return nodes, nil
 }
 
 func (wlq *WaterLogQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := wlq.querySpec()
+	if len(wlq.modifiers) > 0 {
+		_spec.Modifiers = wlq.modifiers
+	}
 	_spec.Node.Columns = wlq.ctx.Fields
 	if len(wlq.ctx.Fields) > 0 {
 		_spec.Unique = wlq.ctx.Unique != nil && *wlq.ctx.Unique
@@ -364,7 +378,7 @@ func (wlq *WaterLogQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (wlq *WaterLogQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := sqlgraph.NewQuerySpec(waterlog.Table, waterlog.Columns, sqlgraph.NewFieldSpec(waterlog.FieldID, field.TypeInt))
+	_spec := sqlgraph.NewQuerySpec(waterlog.Table, waterlog.Columns, sqlgraph.NewFieldSpec(waterlog.FieldID, field.TypeUUID))
 	_spec.From = wlq.sql
 	if unique := wlq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique

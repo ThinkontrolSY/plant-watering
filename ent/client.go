@@ -16,6 +16,7 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
+	"github.com/google/uuid"
 )
 
 // Client is the client that holds all ent builders.
@@ -258,7 +259,7 @@ func (c *WaterLogClient) UpdateOne(wl *WaterLog) *WaterLogUpdateOne {
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *WaterLogClient) UpdateOneID(id int) *WaterLogUpdateOne {
+func (c *WaterLogClient) UpdateOneID(id uuid.UUID) *WaterLogUpdateOne {
 	mutation := newWaterLogMutation(c.config, OpUpdateOne, withWaterLogID(id))
 	return &WaterLogUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
@@ -275,7 +276,7 @@ func (c *WaterLogClient) DeleteOne(wl *WaterLog) *WaterLogDeleteOne {
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *WaterLogClient) DeleteOneID(id int) *WaterLogDeleteOne {
+func (c *WaterLogClient) DeleteOneID(id uuid.UUID) *WaterLogDeleteOne {
 	builder := c.Delete().Where(waterlog.ID(id))
 	builder.mutation.id = &id
 	builder.mutation.op = OpDeleteOne
@@ -292,12 +293,12 @@ func (c *WaterLogClient) Query() *WaterLogQuery {
 }
 
 // Get returns a WaterLog entity by its id.
-func (c *WaterLogClient) Get(ctx context.Context, id int) (*WaterLog, error) {
+func (c *WaterLogClient) Get(ctx context.Context, id uuid.UUID) (*WaterLog, error) {
 	return c.Query().Where(waterlog.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *WaterLogClient) GetX(ctx context.Context, id int) *WaterLog {
+func (c *WaterLogClient) GetX(ctx context.Context, id uuid.UUID) *WaterLog {
 	obj, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)
