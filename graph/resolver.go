@@ -7,6 +7,7 @@ import (
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/robfig/cron/v3"
+	"github.com/spf13/viper"
 
 	"periph.io/x/conn/v3/gpio"
 	"periph.io/x/host/v3/sysfs"
@@ -20,6 +21,7 @@ type Resolver struct {
 	weather    *Weather
 	waterIOs   map[string]*WaterIO
 	statictics map[string]*WaterStatistic
+	baseTime   int32
 }
 
 type WaterStatistic struct {
@@ -30,15 +32,10 @@ type WaterStatistic struct {
 func (r *Resolver) Start() {
 	r.croner = cron.New()
 	// Add a task to cron to run every 10 minutes
-	// 早上 7 点到 10 点每 10 分钟执行一次
-	_, err := r.croner.AddFunc("*/10 7-9 * * *", r.Task)
+	// 早上 6 点到 9 点每 10 分钟执行一次
+	_, err := r.croner.AddFunc("*/10 6-8 * * *", r.Task)
 	if err != nil {
 		log.Println("Error scheduling morning job:", err)
-	}
-	// 下午 16 点到 19 点每 10 分钟执行一次
-	_, err = r.croner.AddFunc("*/10 16-18 * * *", r.Task)
-	if err != nil {
-		log.Println("Error scheduling evening job:", err)
 	}
 	// 每天早上 6 点执行一次
 	_, err = r.croner.AddFunc("0 6 * * *", func() {
@@ -65,7 +62,12 @@ func NewSchema() graphql.ExecutableSchema {
 	if err := pinN2.Out(gpio.Low); err != nil {
 		log.Println("Failed to set pin N2 to low:", err)
 	}
+	baseTime := viper.GetInt32("baseTime")
+	if baseTime == 0 {
+		baseTime = 60
+	}
 	resolver := &Resolver{
+		baseTime: baseTime,
 		waterIOs: map[string]*WaterIO{
 			"N1": {
 				Pin: pinN1,

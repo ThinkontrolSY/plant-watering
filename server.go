@@ -7,6 +7,7 @@ import (
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/gin-gonic/gin"
 
+	"github.com/spf13/viper"
 	"periph.io/x/host/v3"
 )
 
@@ -21,17 +22,15 @@ func graphqlHandler() gin.HandlerFunc {
 	}
 }
 
-// // Defining the Playground handler
-// func playgroundHandler() gin.HandlerFunc {
-// 	h := playground.Handler("GraphQL", "/graph")
-
-// 	return func(c *gin.Context) {
-// 		h.ServeHTTP(c.Writer, c.Request)
-// 	}
-// }
-
 func main() {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
+	viper.SetConfigName("config")
+	viper.AddConfigPath(".")
+	viper.SetConfigType("yaml")
+
+	if err := viper.ReadInConfig(); err != nil {
+		log.Fatal(err.Error())
+	}
 	// Initialize periph.io host
 	if _, err := host.Init(); err != nil {
 		log.Fatalf("Failed to initialize periph.io: %v", err)

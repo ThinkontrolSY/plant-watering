@@ -19,7 +19,13 @@ export type Scalars = {
 
 export type Mutation = {
   __typename?: 'Mutation';
+  setBaseTime: Scalars['Boolean']['output'];
   water: Scalars['Boolean']['output'];
+};
+
+
+export type MutationSetBaseTimeArgs = {
+  baseTime: Scalars['Int']['input'];
 };
 
 
@@ -39,6 +45,12 @@ export type QueryWaterStatisticArgs = {
   channel: Scalars['String']['input'];
 };
 
+export type WaterStatistic = {
+  __typename?: 'WaterStatistic';
+  autoWatering: Scalars['Int']['output'];
+  manualWatering: Scalars['Int']['output'];
+};
+
 export type WateringInput = {
   channel: Scalars['String']['input'];
   seconds: Scalars['Int']['input'];
@@ -46,18 +58,13 @@ export type WateringInput = {
 
 export type Weather = {
   __typename?: 'Weather';
-  dayTemperature: Scalars['Float']['output'];
-  nightTemperature: Scalars['Float']['output'];
+  baseTime: Scalars['Int']['output'];
+  dayTemperature: Scalars['Int']['output'];
+  nightTemperature: Scalars['Int']['output'];
   waterPlanSec: Scalars['Int']['output'];
   weather: Scalars['String']['output'];
   windDirection: Scalars['String']['output'];
   windPower: Scalars['String']['output'];
-};
-
-export type WaterStatistic = {
-  __typename?: 'waterStatistic';
-  autoWatering: Scalars['Int']['output'];
-  manualWatering: Scalars['Int']['output'];
 };
 
 export type ChannelsQueryVariables = Exact<{ [key: string]: never; }>;
@@ -68,14 +75,14 @@ export type ChannelsQuery = { __typename?: 'Query', channels: Array<string> };
 export type WeatherQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type WeatherQuery = { __typename?: 'Query', weather?: { __typename?: 'Weather', dayTemperature: number, nightTemperature: number, windDirection: string, windPower: string, weather: string, waterPlanSec: number } | null };
+export type WeatherQuery = { __typename?: 'Query', weather?: { __typename?: 'Weather', dayTemperature: number, nightTemperature: number, windDirection: string, windPower: string, weather: string, waterPlanSec: number, baseTime: number } | null };
 
 export type WaterStatisticQueryVariables = Exact<{
   channel: Scalars['String']['input'];
 }>;
 
 
-export type WaterStatisticQuery = { __typename?: 'Query', waterStatistic?: { __typename?: 'waterStatistic', autoWatering: number, manualWatering: number } | null };
+export type WaterStatisticQuery = { __typename?: 'Query', waterStatistic?: { __typename?: 'WaterStatistic', autoWatering: number, manualWatering: number } | null };
 
 export type WaterMutationVariables = Exact<{
   input: WateringInput;
@@ -83,6 +90,13 @@ export type WaterMutationVariables = Exact<{
 
 
 export type WaterMutation = { __typename?: 'Mutation', water: boolean };
+
+export type SetBaseTimeMutationVariables = Exact<{
+  baseTime: Scalars['Int']['input'];
+}>;
+
+
+export type SetBaseTimeMutation = { __typename?: 'Mutation', setBaseTime: boolean };
 
 
 export const ChannelsDocument = gql`
@@ -134,6 +148,7 @@ export const WeatherDocument = gql`
     windPower
     weather
     waterPlanSec
+    baseTime
   }
 }
     `;
@@ -247,3 +262,34 @@ export function useWaterMutation(baseOptions?: Apollo.MutationHookOptions<WaterM
 export type WaterMutationHookResult = ReturnType<typeof useWaterMutation>;
 export type WaterMutationResult = Apollo.MutationResult<WaterMutation>;
 export type WaterMutationOptions = Apollo.BaseMutationOptions<WaterMutation, WaterMutationVariables>;
+export const SetBaseTimeDocument = gql`
+    mutation setBaseTime($baseTime: Int!) {
+  setBaseTime(baseTime: $baseTime)
+}
+    `;
+export type SetBaseTimeMutationFn = Apollo.MutationFunction<SetBaseTimeMutation, SetBaseTimeMutationVariables>;
+
+/**
+ * __useSetBaseTimeMutation__
+ *
+ * To run a mutation, you first call `useSetBaseTimeMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useSetBaseTimeMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [setBaseTimeMutation, { data, loading, error }] = useSetBaseTimeMutation({
+ *   variables: {
+ *      baseTime: // value for 'baseTime'
+ *   },
+ * });
+ */
+export function useSetBaseTimeMutation(baseOptions?: Apollo.MutationHookOptions<SetBaseTimeMutation, SetBaseTimeMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<SetBaseTimeMutation, SetBaseTimeMutationVariables>(SetBaseTimeDocument, options);
+      }
+export type SetBaseTimeMutationHookResult = ReturnType<typeof useSetBaseTimeMutation>;
+export type SetBaseTimeMutationResult = Apollo.MutationResult<SetBaseTimeMutation>;
+export type SetBaseTimeMutationOptions = Apollo.BaseMutationOptions<SetBaseTimeMutation, SetBaseTimeMutationVariables>;

@@ -9,6 +9,8 @@ import (
 	"fmt"
 	"log"
 	"plant-watering/graph/model"
+
+	"github.com/spf13/viper"
 )
 
 // Water is the resolver for the water field.
@@ -29,6 +31,18 @@ func (r *mutationResolver) Water(ctx context.Context, input model.WateringInput)
 	}
 }
 
+// SetBaseTime is the resolver for the setBaseTime field.
+func (r *mutationResolver) SetBaseTime(ctx context.Context, baseTime int32) (bool, error) {
+	r.baseTime = baseTime
+	r.weather.CalculateWateringSeconds(baseTime)
+	viper.Set("baseTime", baseTime)
+	err := viper.WriteConfig()
+	if err != nil {
+		log.Printf("Failed to write config: %v", err)
+	}
+	return true, nil
+}
+
 // Channels is the resolver for the channels field.
 func (r *queryResolver) Channels(ctx context.Context) ([]string, error) {
 	return []string{"N1", "N2"}, nil
@@ -44,11 +58,20 @@ func (r *queryResolver) WaterStatistic(ctx context.Context, channel string) (*Wa
 	return r.statictics[channel], nil
 }
 
+// BaseTime is the resolver for the baseTime field.
+func (r *weatherResolver) BaseTime(ctx context.Context, obj *Weather) (int32, error) {
+	return r.baseTime, nil
+}
+
 // Mutation returns MutationResolver implementation.
 func (r *Resolver) Mutation() MutationResolver { return &mutationResolver{r} }
 
 // Query returns QueryResolver implementation.
 func (r *Resolver) Query() QueryResolver { return &queryResolver{r} }
 
+// Weather returns WeatherResolver implementation.
+func (r *Resolver) Weather() WeatherResolver { return &weatherResolver{r} }
+
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
+type weatherResolver struct{ *Resolver }

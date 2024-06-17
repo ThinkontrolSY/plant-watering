@@ -11,7 +11,7 @@ import {
 } from "@mui/material";
 
 export const Channel: React.FC<{ channel: string }> = ({ channel }) => {
-  const [minute, setMinute] = useState(5);
+  const [pst, setPst] = useState(5);
   const { data, refetch } = useWaterStatisticQuery({
     variables: {
       channel: channel,
@@ -51,21 +51,20 @@ export const Channel: React.FC<{ channel: string }> = ({ channel }) => {
           </Typography>
           <Typography variant="h6" component="div">
             已浇水{" "}
-            {((data?.waterStatistic?.autoWatering || 0) +
-              (data?.waterStatistic?.manualWatering || 0)) /
-              60}{" "}
-            分钟
+            {(data?.waterStatistic?.autoWatering || 0) +
+              (data?.waterStatistic?.manualWatering || 0)}
+            秒
           </Typography>
           <Typography sx={{ mb: 1.5 }} color="text.secondary">
-            手动浇水时长(分)
+            手动浇水时长(秒)
           </Typography>
           <Slider
             defaultValue={5}
             min={0}
-            max={10}
+            max={60}
             onChange={(_, value) => {
               if (typeof value === "number") {
-                setMinute(value);
+                setPst(value);
               }
             }}
             step={1}
@@ -76,12 +75,12 @@ export const Channel: React.FC<{ channel: string }> = ({ channel }) => {
           <Button
             size="small"
             onClick={() => {
-              if (minute > 0) {
+              if (pst > 0) {
                 water({
                   variables: {
                     input: {
                       channel: channel,
-                      seconds: minute * 60,
+                      seconds: pst,
                     },
                   },
                 })

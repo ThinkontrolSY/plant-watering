@@ -6,7 +6,7 @@ export default defineConfig({
   server: {
     proxy: {
       "/graph": {
-        target: "http://10.0.10.223:8080",
+        target: "http://192.168.1.5:8080",
         changeOrigin: true,
       },
     },

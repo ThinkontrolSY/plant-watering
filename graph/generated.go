@@ -41,6 +41,7 @@ type Config struct {
 type ResolverRoot interface {
 	Mutation() MutationResolver
 	Query() QueryResolver
+	Weather() WeatherResolver
 }
 
 type DirectiveRoot struct {
@@ -48,7 +49,8 @@ type DirectiveRoot struct {
 
 type ComplexityRoot struct {
 	Mutation struct {
-		Water func(childComplexity int, input model.WateringInput) int
+		SetBaseTime func(childComplexity int, baseTime int32) int
+		Water       func(childComplexity int, input model.WateringInput) int
 	}
 
 	Query struct {
@@ -63,6 +65,7 @@ type ComplexityRoot struct {
 	}
 
 	Weather struct {
+		BaseTime         func(childComplexity int) int
 		DayTemperature   func(childComplexity int) int
 		NightTemperature func(childComplexity int) int
 		WaterPlanSec     func(childComplexity int) int
@@ -74,11 +77,15 @@ type ComplexityRoot struct {
 
 type MutationResolver interface {
 	Water(ctx context.Context, input model.WateringInput) (bool, error)
+	SetBaseTime(ctx context.Context, baseTime int32) (bool, error)
 }
 type QueryResolver interface {
 	Channels(ctx context.Context) ([]string, error)
 	Weather(ctx context.Context) (*Weather, error)
 	WaterStatistic(ctx context.Context, channel string) (*WaterStatistic, error)
+}
+type WeatherResolver interface {
+	BaseTime(ctx context.Context, obj *Weather) (int32, error)
 }
 
 type executableSchema struct {
@@ -99,6 +106,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 	ec := executionContext{nil, e, 0, 0, nil}
 	_ = ec
 	switch typeName + "." + field {
+
+	case "Mutation.setBaseTime":
+		if e.complexity.Mutation.SetBaseTime == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_setBaseTime_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.SetBaseTime(childComplexity, args["baseTime"].(int32)), true
 
 	case "Mutation.water":
 		if e.complexity.Mutation.Water == nil {
@@ -151,6 +170,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.WaterStatistic.ManualWatering(childComplexity), true
+
+	case "Weather.baseTime":
+		if e.complexity.Weather.BaseTime == nil {
+			break
+		}
+
+		return e.complexity.Weather.BaseTime(childComplexity), true
 
 	case "Weather.dayTemperature":
 		if e.complexity.Weather.DayTemperature == nil {
@@ -319,6 +345,21 @@ var parsedSchema = gqlparser.MustLoadSchema(sources...)
 
 // region    ***************************** args.gotpl *****************************
 
+func (ec *executionContext) field_Mutation_setBaseTime_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int32
+	if tmp, ok := rawArgs["baseTime"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("baseTime"))
+		arg0, err = ec.unmarshalNInt2int32(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["baseTime"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_water_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -457,6 +498,61 @@ func (ec *executionContext) fieldContext_Mutation_water(ctx context.Context, fie
 	return fc, nil
 }
 
+func (ec *executionContext) _Mutation_setBaseTime(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_setBaseTime(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().SetBaseTime(rctx, fc.Args["baseTime"].(int32))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_setBaseTime(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_setBaseTime_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query_channels(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query_channels(ctx, field)
 	if err != nil {
@@ -549,6 +645,8 @@ func (ec *executionContext) fieldContext_Query_weather(_ context.Context, field 
 				return ec.fieldContext_Weather_weather(ctx, field)
 			case "waterPlanSec":
 				return ec.fieldContext_Weather_waterPlanSec(ctx, field)
+			case "baseTime":
+				return ec.fieldContext_Weather_baseTime(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Weather", field.Name)
 		},
@@ -1088,6 +1186,50 @@ func (ec *executionContext) fieldContext_Weather_waterPlanSec(_ context.Context,
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Weather_baseTime(ctx context.Context, field graphql.CollectedField, obj *Weather) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Weather_baseTime(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Weather().BaseTime(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int32)
+	fc.Result = res
+	return ec.marshalNInt2int32(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Weather_baseTime(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Weather",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Int does not have child fields")
 		},
@@ -2936,6 +3078,13 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "setBaseTime":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_setBaseTime(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -3127,33 +3276,69 @@ func (ec *executionContext) _Weather(ctx context.Context, sel ast.SelectionSet, 
 		case "dayTemperature":
 			out.Values[i] = ec._Weather_dayTemperature(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "nightTemperature":
 			out.Values[i] = ec._Weather_nightTemperature(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "windDirection":
 			out.Values[i] = ec._Weather_windDirection(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "windPower":
 			out.Values[i] = ec._Weather_windPower(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "weather":
 			out.Values[i] = ec._Weather_weather(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "waterPlanSec":
 			out.Values[i] = ec._Weather_waterPlanSec(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
+		case "baseTime":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Weather_baseTime(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

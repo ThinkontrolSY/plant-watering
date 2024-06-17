@@ -50,10 +50,7 @@ type Weather struct {
 	WaterPlanSec     int32
 }
 
-// 根据气温和湿度计算浇水时长的函数
-func (w *Weather) calculateWateringSeconds() {
-	// 定义绣球花基础需水量（分钟）
-	baseTime := 20.0
+func (w *Weather) CalculateWateringSeconds(baseTime int32) {
 
 	// 如果温度太低，不进行浇水
 	if w.DayTemperature < 0 || w.NightTemperature < 0 {
@@ -66,28 +63,27 @@ func (w *Weather) calculateWateringSeconds() {
 	}
 
 	// 定义气温对需水量的影响
-	// 假设每增加1摄氏度，增加1分钟
-	tempAdjustment := (w.DayTemperature + w.NightTemperature - 40) / 2
+	tempAdjustment := (w.DayTemperature + w.NightTemperature - 40) * 2
 
 	// 定义天气对需水量的影响
-	weatherAdjustment := 0.0
+	weatherAdjustment := int32(0)
 	if strings.Contains(w.Weather, "霾") || strings.Contains(w.Weather, "雾") {
-		weatherAdjustment = 5.0
+		weatherAdjustment = 5
 	} else if strings.Contains(w.Weather, "风") {
-		weatherAdjustment = 2.0
+		weatherAdjustment = 10
 	}
 
 	// 计算最终的浇水时长
-	wateringTime := baseTime + float64(tempAdjustment) + weatherAdjustment
+	wateringTime := baseTime + tempAdjustment + weatherAdjustment
 
 	// 确保浇水时间不小于基础时间，也不过长
-	if wateringTime < baseTime/2.0 {
-		wateringTime = baseTime / 2.0 // 设定一个下限，避免过度浇水
-	} else if wateringTime > 60 {
-		wateringTime = 60 // 设定一个上限，避免过度浇水
+	if wateringTime < 0 {
+		wateringTime = 0 // 设定一个下限，避免过度浇水
+	} else if wateringTime > 120 {
+		wateringTime = 120 // 设定一个上限，避免过度浇水
 	}
 
-	w.WaterPlanSec = int32(wateringTime * 60)
+	w.WaterPlanSec = wateringTime
 }
 
 func (r *Resolver) GetWeatherInfo() error {
@@ -174,14 +170,14 @@ func (r *Resolver) GetWeatherInfo() error {
 		WindPower:        live.Daypower,
 		Weather:          live.Dayweather,
 	}
-	r.weather.calculateWateringSeconds()
+	r.weather.CalculateWateringSeconds(r.baseTime)
 	return nil
 }
 
 func (r *Resolver) Task() {
 	if err := r.GetWeatherInfo(); err == nil {
 		log.Println("Watering duration:", r.weather.WaterPlanSec)
-		pulse := r.weather.WaterPlanSec / 24
+		pulse := r.weather.WaterPlanSec / 12
 		if pulse > 0 {
 			log.Println("Pulse duration:", pulse)
 			for c, w := range r.waterIOs {

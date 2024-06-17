@@ -10,6 +10,7 @@ query weather {
     windPower
     weather
     waterPlanSec
+    baseTime
   }
 }
 
@@ -22,4 +23,8 @@ query waterStatistic($channel: String!) {
 
 mutation water($input: WateringInput!) {
   water(input: $input)
+}
+
+mutation setBaseTime($baseTime: Int!) {
+  setBaseTime(baseTime: $baseTime)
 }
