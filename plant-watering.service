@@ -1,0 +1,15 @@
+[Unit]
+Description=Plant Watering
+After=network-online.target ntp.service
+Wants=network-online.target ntp.service
+
+[Service]
+WorkingDirectory=/root/pw
+ExecStartPre=/bin/sleep 60
+ExecStart=/root/pw/plant-watering
+Restart=always
+User=root
+Group=root
+
+[Install]
+WantedBy=multi-user.target

@@ -1,34 +1,21 @@
+body {
+  background-color: rgba(2, 33, 58, 0.597);
+}
+
 #root {
   max-width: 1280px;
   margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
-}
-
-body {
-  margin: 0;
-  padding: 0;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-  font-family: Arial, sans-serif;
 }
 
 .container {
-  width: 90%;
-  max-width: 600px;
-  text-align: center;
-}
-
-@media (max-width: 600px) {
-  body {
-    flex-direction: column;
-    padding: 20px;
-  }
-
-  .container {
-    width: 100%;
-    padding: 10px;
-  }
+  position: relative;
+  width: 88vw;
+  /* height: calc(100vh - 64px); */
+  /* padding-top: 24px; */
+  max-width: 480px;
+  display: flex;
+  flex-direction: column; /* 设置为垂直方向 */
+  justify-content: flex-start; /* 垂直方向顶部对齐 */
+  align-items: stretch; /* 水平方向居中 */
+  gap: 20px;
 }

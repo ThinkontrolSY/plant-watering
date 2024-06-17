@@ -66,7 +66,6 @@ resolver:
 # gqlgen will search for any type names in the schema in these go packages
 # if they match it will use them, otherwise it will generate them.
 autobind:
-  - "plant-watering/ent"
 #  - "plant-watering/graph/model"
 
 # This section declares type mapping between the GraphQL and go type systems
@@ -81,6 +80,3 @@ models:
   Int:
     model:
       - github.com/99designs/gqlgen/graphql.Int32
-  # Float:
-  #   model:
-  #     - github.com/99designs/gqlgen/graphql.Float

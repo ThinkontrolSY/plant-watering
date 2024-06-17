@@ -2,21 +2,13 @@
 
 package model
 
-import (
-	"plant-watering/ent"
-)
+type Mutation struct {
+}
 
-type WaterLogPageConnection struct {
-	Nodes      []*ent.WaterLog `json:"nodes,omitempty"`
-	TotalCount int32           `json:"totalCount"`
+type Query struct {
 }
 
 type WateringInput struct {
 	Channel string `json:"channel"`
 	Seconds int32  `json:"seconds"`
-}
-
-type WaterStatistic struct {
-	AutoWatering   int32 `json:"autoWatering"`
-	ManualWatering int32 `json:"manualWatering"`
 }

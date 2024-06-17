@@ -1,7 +1,6 @@
 package graph
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -31,8 +30,8 @@ type WeatherResponse struct {
 			Week         string `json:"week"`
 			Dayweather   string `json:"dayweather"`
 			Nightweather string `json:"nightweather"`
-			Daytemp      string `json:"daytemp_float"`
-			Nighttemp    string `json:"nighttemp_float"`
+			Daytemp      string `json:"daytemp"`
+			Nighttemp    string `json:"nighttemp"`
 			Daywind      string `json:"daywind"`
 			Nightwind    string `json:"nightwind"`
 			Daypower     string `json:"daypower"`
@@ -43,8 +42,8 @@ type WeatherResponse struct {
 
 type Weather struct {
 	ReportTime       time.Time
-	DayTemperature   float32
-	NightTemperature float32
+	DayTemperature   int32
+	NightTemperature int32
 	WindDirection    string
 	WindPower        string
 	Weather          string
@@ -104,6 +103,7 @@ func (r *Resolver) GetWeatherInfo() error {
 	params := url.Values{}
 	params.Add("key", key)
 	params.Add("city", city)
+	params.Add("extensions", "all")
 	url := fmt.Sprintf("%s?%s", baseURL, params.Encode())
 	response, err := http.Get(url)
 	if err != nil {
@@ -148,13 +148,13 @@ func (r *Resolver) GetWeatherInfo() error {
 
 	live := forecast.Casts[0]
 
-	t1, err := strconv.ParseFloat(live.Daytemp, 32)
+	t1, err := strconv.ParseInt(live.Daytemp, 10, 32)
 	if err != nil {
 		log.Printf("Failed to parse day temperature: %v", err)
 		return err
 	}
 
-	t2, err := strconv.ParseFloat(live.Nighttemp, 32)
+	t2, err := strconv.ParseInt(live.Nighttemp, 10, 32)
 	if err != nil {
 		log.Printf("Failed to parse night temperature: %v", err)
 		return err
@@ -168,8 +168,8 @@ func (r *Resolver) GetWeatherInfo() error {
 
 	r.weather = &Weather{
 		ReportTime:       t,
-		DayTemperature:   float32(t1),
-		NightTemperature: float32(t2),
+		DayTemperature:   int32(t1),
+		NightTemperature: int32(t2),
 		WindDirection:    live.Daywind,
 		WindPower:        live.Daypower,
 		Weather:          live.Dayweather,
@@ -189,8 +189,8 @@ func (r *Resolver) Task() {
 					log.Println("Failed to water:", err)
 				} else {
 					log.Println("Watering:", pulse)
-					if _, err := r.entClient.WaterLog.Create().SetChannel(c).SetSeconds(pulse).SetManual(false).Save(context.Background()); err != nil {
-						log.Println("Failed to save water log:", err)
+					if s, ok := r.statictics[c]; ok {
+						s.AutoWatering += pulse
 					}
 				}
 			}

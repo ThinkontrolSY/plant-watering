@@ -4,7 +4,6 @@ package graph
 
 import (
 	"log"
-	"plant-watering/ent"
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/robfig/cron/v3"
@@ -17,10 +16,15 @@ import (
 //
 // It serves as dependency injection for your app, add any dependencies you require here.
 type Resolver struct {
-	entClient *ent.Client
-	croner    *cron.Cron
-	weather   *Weather
-	waterIOs  map[string]*WaterIO
+	croner     *cron.Cron
+	weather    *Weather
+	waterIOs   map[string]*WaterIO
+	statictics map[string]*WaterStatistic
+}
+
+type WaterStatistic struct {
+	AutoWatering   int32
+	ManualWatering int32
 }
 
 func (r *Resolver) Start() {
@@ -36,13 +40,23 @@ func (r *Resolver) Start() {
 	if err != nil {
 		log.Println("Error scheduling evening job:", err)
 	}
+	// 每天早上 6 点执行一次
+	_, err = r.croner.AddFunc("0 6 * * *", func() {
+		for _, w := range r.statictics {
+			w.AutoWatering = 0
+			w.ManualWatering = 0
+		}
+	})
+	if err != nil {
+		log.Println("Error scheduling weather job:", err)
+	}
+
 	r.croner.Start()
 	log.Println("Cron started")
+	go r.GetWeatherInfo()
 }
 
-func NewSchema(
-	entClient *ent.Client,
-) graphql.ExecutableSchema {
+func NewSchema() graphql.ExecutableSchema {
 	pinN1 := sysfs.Pins[198]
 	pinN2 := sysfs.Pins[199]
 	if err := pinN1.Out(gpio.Low); err != nil {
@@ -52,7 +66,6 @@ func NewSchema(
 		log.Println("Failed to set pin N2 to low:", err)
 	}
 	resolver := &Resolver{
-		entClient: entClient,
 		waterIOs: map[string]*WaterIO{
 			"N1": {
 				Pin: pinN1,
@@ -60,6 +73,10 @@ func NewSchema(
 			"N2": {
 				Pin: pinN2,
 			},
+		},
+		statictics: map[string]*WaterStatistic{
+			"N1": {},
+			"N2": {},
 		},
 	}
 	config := Config{

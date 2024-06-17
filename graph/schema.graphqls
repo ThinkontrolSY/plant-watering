@@ -1,41 +1,39 @@
 # GraphQL schema example
 #
 # https://gqlgen.com/getting-started/
-scalar Time
-
+directive @goField(
+  forceResolver: Boolean
+  name: String
+  omittable: Boolean
+) on FIELD_DEFINITION | INPUT_FIELD_DEFINITION
+directive @goModel(
+  model: String
+  models: [String!]
+  forceGenerate: Boolean
+) on OBJECT | INPUT_OBJECT | SCALAR | ENUM | INTERFACE | UNION
 input WateringInput {
   channel: String!
   seconds: Int!
 }
 
 type Weather @goModel(model: "plant-watering/graph.Weather") {
-  dayTemperature: Float!
-  nightTemperature: Float!
+  dayTemperature: Int!
+  nightTemperature: Int!
   windDirection: String!
   windPower: String!
   weather: String!
   waterPlanSec: Int!
 }
 
-type waterStatistic {
+type WaterStatistic @goModel(model: "plant-watering/graph.WaterStatistic") {
   autoWatering: Int!
   manualWatering: Int!
-}
-
-type WaterLogPageConnection {
-  nodes: [WaterLog!]
-  totalCount: Int!
 }
 
 type Query {
   channels: [String!]!
   weather: Weather
-  waterStatistic(channel: String!): waterStatistic
-  waterLogsPage(
-    offset: Int!
-    limit: Int!
-    where: WaterLogWhereInput
-  ): WaterLogPageConnection!
+  waterStatistic(channel: String!): WaterStatistic
 }
 
 type Mutation {

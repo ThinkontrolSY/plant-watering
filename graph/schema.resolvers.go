@@ -8,10 +8,7 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"plant-watering/ent"
-	"plant-watering/ent/waterlog"
 	"plant-watering/graph/model"
-	"time"
 )
 
 // Water is the resolver for the water field.
@@ -22,8 +19,8 @@ func (r *mutationResolver) Water(ctx context.Context, input model.WateringInput)
 			return false, fmt.Errorf("failed to water: %v", err)
 		} else {
 			log.Printf("Watering %s: %d", input.Channel, input.Seconds)
-			if _, err := r.entClient.WaterLog.Create().SetChannel(input.Channel).SetSeconds(input.Seconds).SetManual(true).Save(context.Background()); err != nil {
-				log.Printf("Failed to save water log: %v", err)
+			if s, ok := r.statictics[input.Channel]; ok {
+				s.ManualWatering += input.Seconds
 			}
 			return true, nil
 		}
@@ -43,86 +40,8 @@ func (r *queryResolver) Weather(ctx context.Context) (*Weather, error) {
 }
 
 // WaterStatistic is the resolver for the waterStatistic field.
-func (r *queryResolver) WaterStatistic(ctx context.Context, channel string) (*model.WaterStatistic, error) {
-	// 设置当前日期的早上6点时间
-	now := time.Now()
-	startOfDay := time.Date(now.Year(), now.Month(), now.Day(), 6, 0, 0, 0, now.Location())
-
-	// 查询
-	var results []struct {
-		Manual  bool  `json:"manual"`
-		Seconds int32 `json:"seconds"`
-	}
-	err := r.entClient.WaterLog.Query().
-		Where(
-			waterlog.TimeGTE(startOfDay),
-			waterlog.ChannelEQ("channel"),
-		).
-		GroupBy(waterlog.FieldManual).
-		Aggregate(ent.Sum(waterlog.FieldSeconds)).
-		Scan(ctx, &results)
-
-	if err != nil {
-		fmt.Printf("failed querying waterlog: %v", err)
-		return nil, err
-	}
-
-	// 计算
-	var autoSeconds, manualSeconds int32
-	for _, result := range results {
-		if result.Manual {
-			manualSeconds = result.Seconds
-		} else {
-			autoSeconds = result.Seconds
-		}
-	}
-	return &model.WaterStatistic{
-		AutoWatering:   autoSeconds,
-		ManualWatering: manualSeconds,
-	}, nil
-}
-
-// WaterLogsPage is the resolver for the waterLogsPage field.
-func (r *queryResolver) WaterLogsPage(ctx context.Context, offset int32, limit int32, where *ent.WaterLogWhereInput) (*model.WaterLogPageConnection, error) {
-	query := r.entClient.WaterLog.Query()
-	if where != nil {
-		if query_, err := where.Filter(query); err == nil {
-			query = query_
-		} else {
-			log.Printf("failed to filter waterlogs: %v", err)
-		}
-	}
-	totalCount, err := query.Count(ctx)
-	if err != nil {
-		return nil, err
-	}
-	if limit == 0 {
-		return &model.WaterLogPageConnection{
-			TotalCount: int32(totalCount),
-		}, nil
-	}
-	query = query.Offset(int(offset))
-	if limit > 0 {
-		query = query.Limit(int(limit))
-	}
-	nodes, err := query.All(ctx)
-	if err != nil {
-		return nil, err
-	}
-	return &model.WaterLogPageConnection{
-		TotalCount: int32(totalCount),
-		Nodes:      nodes,
-	}, nil
-}
-
-// DayTemperature is the resolver for the dayTemperature field.
-func (r *weatherResolver) DayTemperature(ctx context.Context, obj *Weather) (float64, error) {
-	panic(fmt.Errorf("not implemented: DayTemperature - dayTemperature"))
-}
-
-// NightTemperature is the resolver for the nightTemperature field.
-func (r *weatherResolver) NightTemperature(ctx context.Context, obj *Weather) (float64, error) {
-	panic(fmt.Errorf("not implemented: NightTemperature - nightTemperature"))
+func (r *queryResolver) WaterStatistic(ctx context.Context, channel string) (*WaterStatistic, error) {
+	return r.statictics[channel], nil
 }
 
 // Mutation returns MutationResolver implementation.
@@ -131,9 +50,5 @@ func (r *Resolver) Mutation() MutationResolver { return &mutationResolver{r} }
 // Query returns QueryResolver implementation.
 func (r *Resolver) Query() QueryResolver { return &queryResolver{r} }
 
-// Weather returns WeatherResolver implementation.
-func (r *Resolver) Weather() WeatherResolver { return &weatherResolver{r} }
-
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
-type weatherResolver struct{ *Resolver }
