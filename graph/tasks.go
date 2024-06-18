@@ -56,11 +56,13 @@ func (w *Weather) CalculateWateringSeconds(baseTime int32) {
 	// 如果温度太低，不进行浇水
 	if w.DayTemperature < 0 || w.NightTemperature < 0 {
 		w.WaterPlanSec = 0
+		return
 	}
 
 	// 如果天气包含“雨”或“雪”，不进行浇水
 	if strings.Contains(w.Weather, "雨") || strings.Contains(w.Weather, "雪") {
 		w.WaterPlanSec = 0
+		return
 	}
 
 	// 定义气温对需水量的影响
@@ -77,11 +79,10 @@ func (w *Weather) CalculateWateringSeconds(baseTime int32) {
 	// 计算最终的浇水时长
 	wateringTime := baseTime + tempAdjustment + weatherAdjustment
 
-	// 确保浇水时间不小于基础时间，也不过长
 	if wateringTime < 0 {
-		wateringTime = 0 // 设定一个下限，避免过度浇水
-	} else if wateringTime > 120 {
-		wateringTime = 120 // 设定一个上限，避免过度浇水
+		wateringTime = 0
+	} else if wateringTime > 2*baseTime {
+		wateringTime = 2 * baseTime // 设定一个上限，避免过度浇水
 	}
 
 	w.WaterPlanSec = wateringTime
