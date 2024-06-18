@@ -21,7 +21,7 @@ func (r *mutationResolver) Water(ctx context.Context, input model.WateringInput)
 			return false, fmt.Errorf("failed to water: %v", err)
 		} else {
 			log.Printf("Watering %s: %d", input.Channel, input.Seconds)
-			if s, ok := r.statictics[input.Channel]; ok {
+			if s, ok := r.statistics[input.Channel]; ok {
 				s.ManualWatering += input.Seconds
 			}
 			return true, nil
@@ -45,7 +45,7 @@ func (r *mutationResolver) SetBaseTime(ctx context.Context, baseTime int32) (boo
 
 // Channels is the resolver for the channels field.
 func (r *queryResolver) Channels(ctx context.Context) ([]string, error) {
-	return []string{"N1", "N2"}, nil
+	return []string{"N1"}, nil
 }
 
 // Weather is the resolver for the weather field.
@@ -55,7 +55,7 @@ func (r *queryResolver) Weather(ctx context.Context) (*Weather, error) {
 
 // WaterStatistic is the resolver for the waterStatistic field.
 func (r *queryResolver) WaterStatistic(ctx context.Context, channel string) (*WaterStatistic, error) {
-	return r.statictics[channel], nil
+	return r.statistics[channel], nil
 }
 
 // BaseTime is the resolver for the baseTime field.

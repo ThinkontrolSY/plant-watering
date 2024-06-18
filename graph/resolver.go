@@ -20,7 +20,7 @@ type Resolver struct {
 	croner     *cron.Cron
 	weather    *Weather
 	waterIOs   map[string]*WaterIO
-	statictics map[string]*WaterStatistic
+	statistics map[string]*WaterStatistic
 	baseTime   int32
 }
 
@@ -33,13 +33,13 @@ func (r *Resolver) Start() {
 	r.croner = cron.New()
 	// Add a task to cron to run every 10 minutes
 	// 早上 6 点到 9 点每 10 分钟执行一次
-	_, err := r.croner.AddFunc("*/10 6-8 * * *", r.Task)
+	_, err := r.croner.AddFunc("*/10 6-7 * * *", r.Task)
 	if err != nil {
 		log.Println("Error scheduling morning job:", err)
 	}
 	// 每天早上 6 点执行一次
 	_, err = r.croner.AddFunc("0 6 * * *", func() {
-		for _, w := range r.statictics {
+		for _, w := range r.statistics {
 			w.AutoWatering = 0
 			w.ManualWatering = 0
 		}
@@ -76,7 +76,7 @@ func NewSchema() graphql.ExecutableSchema {
 				Pin: pinN2,
 			},
 		},
-		statictics: map[string]*WaterStatistic{
+		statistics: map[string]*WaterStatistic{
 			"N1": {},
 			"N2": {},
 		},

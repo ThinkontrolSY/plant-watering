@@ -12,6 +12,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/spf13/viper"
 	"periph.io/x/conn/v3/gpio"
 )
 
@@ -93,8 +94,10 @@ func (r *Resolver) GetWeatherInfo() error {
 	// Get weather data from the weather API, API address: https://restapi.amap.com/v3/weather/weatherInfo
 	// API parameters: key, city
 	// The key is the key of the weather API, and the city is the city name
-	key := "805685a37870fd471eeb75db48fb3f2b"
-	city := "330106"
+	// key := "805685a37870fd471eeb75db48fb3f2b"
+	// city := "330106"
+	key := viper.GetString("amapKey")
+	city := viper.GetString("cityCode")
 	baseURL := "https://restapi.amap.com/v3/weather/weatherInfo"
 	params := url.Values{}
 	params.Add("key", key)
@@ -185,7 +188,7 @@ func (r *Resolver) Task() {
 					log.Println("Failed to water:", err)
 				} else {
 					log.Println("Watering:", pulse)
-					if s, ok := r.statictics[c]; ok {
+					if s, ok := r.statistics[c]; ok {
 						s.AutoWatering += pulse
 					}
 				}
