@@ -65,27 +65,19 @@ func (w *Weather) CalculateWateringSeconds(baseTime int32) {
 		return
 	}
 
-	// 定义气温对需水量的影响
-	tempAdjustment := (w.DayTemperature + w.NightTemperature - 40) * 2
-
-	// 定义天气对需水量的影响
-	weatherAdjustment := int32(0)
-	if strings.Contains(w.Weather, "霾") || strings.Contains(w.Weather, "雾") {
-		weatherAdjustment = 5
-	} else if strings.Contains(w.Weather, "风") {
-		weatherAdjustment = 10
-	}
+	templateFactor := (float32(w.DayTemperature+w.NightTemperature) / float32(40))
+	templateFactor = templateFactor * templateFactor
 
 	// 计算最终的浇水时长
-	wateringTime := baseTime + tempAdjustment + weatherAdjustment
+	wateringTime := float32(baseTime) * templateFactor
 
 	if wateringTime < 0 {
 		wateringTime = 0
-	} else if wateringTime > 2*baseTime {
-		wateringTime = 2 * baseTime // 设定一个上限，避免过度浇水
+	} else if wateringTime > 2*float32(baseTime) {
+		wateringTime = 2 * float32(baseTime) // 设定一个上限，避免过度浇水
 	}
 
-	w.WaterPlanSec = wateringTime
+	w.WaterPlanSec = int32(wateringTime)
 }
 
 func (r *Resolver) GetWeatherInfo() error {
